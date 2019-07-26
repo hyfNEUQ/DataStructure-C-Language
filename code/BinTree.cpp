@@ -21,6 +21,35 @@ TreeNode * initTreeNode(char data)
 	return head;
 }
 /*
+初始化一颗二叉排序树  格式如下
+          E
+	   /   \
+	  B     H
+	 /\    / \
+	A  C  G   K
+	    \
+         D 
+*/
+TreeNode * initBinSortTree()
+{
+	TreeNode *head=initTreeNode('E'); 
+	TreeNode *headL=initTreeNode('B');
+	TreeNode *headR=initTreeNode('H');
+	TreeNode *headRR= initTreeNode('K');
+	TreeNode *headRL= initTreeNode('G');
+	TreeNode *headLL= initTreeNode('A');
+	TreeNode *headLR= initTreeNode('C');
+	TreeNode *headLRR= initTreeNode('D');
+	head->leftChild=headL;
+	head->rightChild=headR;
+	headR->rightChild=headRR;
+	headR->leftChild=headRL;
+	headL->leftChild=headLL;
+	headL->rightChild=headLR;
+	headLR->rightChild=headLRR; 
+	return head;
+}
+/*
 初始化一颗二叉树 二叉树格式如下
         A
       /  \
@@ -50,7 +79,7 @@ TreeNode * initTree()
 	headR->rightChild=headRR;
 	headRL->leftChild=headRLL;
 	headRLL->rightChild=headRLLR;
-	//headL->leftChild=headLL;
+	headL->leftChild=headLL;
 	return head;
 }
 /*
@@ -459,25 +488,83 @@ else
 根据先序遍历和中序遍历建立二叉链表 
 */
 
-TreeNode* ReConstructBinaryTree(char pre[],int startpre,int endpre,char in[],int startin,int endin)
+TreeNode* ReConstructBinaryTree(char pre[],int startPre,int endPre,char in[],int startIn,int endIn)
 {
-        if(startpre>endpre||startin>endin) return NULL;
-        TreeNode* root=(struct TreeNode *) malloc (sizeof(struct TreeNode));
-		root->data=pre[startpre];
-        for(int i=startin;i<=endin;i++)
-        {
-            if(in[i]==root->data){
-            root->leftChild=ReConstructBinaryTree(pre,startpre+1,startpre-startin+i,in,startin,i-1);
-            root->rightChild=ReConstructBinaryTree(pre,startpre-startin+i+1,endpre,in,i+1,endin);
-            break;
-            }
-        }
-        return root;
+	if(startPre>endPre||startIn>endIn) return NULL;
+	TreeNode * root=(struct TreeNode *) malloc (sizeof(struct TreeNode));
+	root->data=pre[startPre];
+	for(int i=startIn;i<=endIn;i++)
+	{
+		if(root->data==in[i])
+		{
+			root->leftChild=ReConstructBinaryTree(pre,startPre+1,startPre-startIn+i,in,startIn,i-1);
+			root->rightChild=ReConstructBinaryTree(pre,startPre-startIn+i+1,endPre,in,i+1,endIn);
+		    break;
+		}
+	}
+}
+/*
+编程求以孩子兄弟表示法存储的森林的叶子节点个数（左指针为NULL的节点的个数） 
+*/ 
+int coutLeafInForest(TreeNode *p)
+{
+if(p==NULL) return 0;
+else if(p->leftChild==NULL) return 	coutLeafInForest(p->rightChild)+1;
+else return coutLeafInForest(p->leftChild)+coutLeafInForest(p->rightChild);
+} 
+/*
+判断给定的二叉树是否为二叉排序树 
+调用方式如下cout<<isBinSortTree(initBinSortTree()) ; 
+*/ 
+bool isBinSortTree(TreeNode *p)
+{
+	//利用非递归的中序遍历来实现
+	stack<TreeNode *> s;
+	char pre,current;
+	//因为'@'的ASCII码是'A'的ASCII码-1 所以用'@'做初始值 
+	pre=current='@';
+	while(!s.empty()||p!=NULL)
+	{
+		while(p!=NULL)
+		{
+		s.push(p);
+		p=p->leftChild;	
+		} 
+		p=s.top();
+		pre=current;
+		current=p->data;
+		cout<<"pre="<<pre<<"   current="<<current<<endl;
+		if(pre>=current) return false;
+		s.pop();
+		p=p->rightChild;
+	} 
+	return true;
+}
+/*
+求指定节点在二叉排序树中的层次 
+*/
+int getNodeLevelInBinTree(TreeNode *p,char x)
+{
+	if(p==NULL) return 0;
+	if(p->data==x) return 1;
+	else if(p->data>x) return getNodeLevelInBinTree(p->leftChild,x)+1;
+	else  return getNodeLevelInBinTree(p->rightChild,x)+1;
+}
+/*
+判断二叉树是否是平衡二叉树  用全局变量isBBT记录结果 
+*/
+bool isBBT=true;
+int isSelfBalanceBinTree(TreeNode *p)
+{
+	 if(p==NULL) return 0;
+     int pLeft= isSelfBalanceBinTree(p->leftChild)+1;
+     int pRight=isSelfBalanceBinTree(p->rightChild)+1;
+     if(abs(pLeft-pRight)>1) isBBT=false;
+     cout<<p->data<<"左右子树差值为"<<abs(pLeft-pRight)<<endl;;
+     return max(pLeft,pRight);
 }
 
 int main()
 {
-	char preOrder[3]={'A','B','C'};
-	char inOrder[3]={'B','C','A'};
-    levelOrder(ReConstructBinaryTree(preOrder,0,2,inOrder,0,2));
+isSelfBalanceBinTree(initBinSortTree()); 
 } 
