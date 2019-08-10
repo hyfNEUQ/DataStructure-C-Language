@@ -80,7 +80,7 @@ void shellSort(int data[],int n)
 {
 for(int gap=n/2;gap>0;gap=gap/2)
 {
-	for(int k=0;k<n;k++)
+	for(int k=0;k<gap;k++)
 	{
 	int i=0;
 	while(k+i*gap<n)
