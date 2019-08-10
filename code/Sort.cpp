@@ -1,5 +1,22 @@
 #include <iostream>
+#include <stdio.h>
+#include <stdlib.h> 
+#include <stack>
 using namespace std;
+//用于桶排序的桶（链表形式） 
+struct node
+{
+int data;
+node * next;	
+}; 
+//获取一个桶结点
+node *getNode(int data)
+{
+	node *n=(struct node*) malloc(sizeof(struct node));
+	n->data=data;
+	n->next=NULL;
+    return 	n;
+} 
 //打印排序后的结果 
 void print(int data[],int n)
 {
@@ -63,23 +80,26 @@ void shellSort(int data[],int n)
 {
 for(int gap=n/2;gap>0;gap=gap/2)
 {
+	for(int k=0;k<n;k++)
+	{
 	int i=0;
-	while(i*gap<n)
+	while(k+i*gap<n)
 	{
 		int j=i-1;
 		while(j>=0)
 		{
-			if(data[(j+1)*gap]<data[j*gap]) 
+			if(data[k+(j+1)*gap]<data[k+j*gap]) 
 			{
-			int t=data[(j+1)*gap];
-			data[(j+1)*gap]=data[j*gap];
-			data[j*gap]=t;	
+			int t=data[k+(j+1)*gap];
+			data[k+(j+1)*gap]=data[k+j*gap];
+			data[k+j*gap]=t;	
 			j--;
 			} 
 			else break;
 		}
 		i++;
 	}
+   }
 }
 print(data,n);	
 } 
@@ -176,14 +196,102 @@ void heapSort(int data[],int n)
 	}	
 	print(data,15);
 }
+//合并两数组 
+void merge(int start,int mid,int end,int data[],int tempt[])
+{
+int start1=start;
+int start2=mid+1;
+int j=0;
+while(start1<=mid&&start2<=end)
+{
+	if(data[start1]>data[start2]) tempt[j++]=data[start2++];
+	else tempt[j++]=data[start1++];
+}	
+while(start1<=mid)
+{
+	tempt[j++]=data[start1++];
+}
+while(start2<=end)
+{
+	tempt[j++]=data[start2++];
+}
+for(int i=start;i<=end;i++)
+{
+	data[i]=tempt[i-start];
+}
+}
+//归并排序 (开始数组的下标,结束数组的下标,待排数组,临时存放数据的数组)
+void mergeSort(int start,int end,int data[],int tempt[])
+{
+ if(end>start)
+ {
+ int mid=(end+start)/2;
+ mergeSort(start,mid,data,tempt);
+ mergeSort(mid+1,end,data,tempt);
+ merge(start,mid,end,data,tempt);
+ }	
+ print(data,15);
+} 
+/*
+基数排序（桶排序） param(待排数组,数组大小,最大数的位数)
+*/
+void radixSort(int data[],int n,int maxSize)
+{
+	node * nodes[10];
+	int j=1; int k=1; 
+	while(j<=maxSize)
+	{
+		//把桶清空 
+		for(int i=0;i<10;i++)
+	    {
+		    node * n=NULL;
+		    nodes[i]=n; 
+	    }
+	    //数据装到相应的桶中 
+		for(int i=0;i<n;i++)
+		{
+			int index=(data[i]/k)%10;
+			node * n=getNode(data[i]);
+			n->next=nodes[index];
+			nodes[index]=n;
+		}
+		//从桶中取出数据来回填到数组中去 
+		int t=0;
+		for(int i=0;i<10;i++)
+		{
+			//由于前面使用的是尾插法 所以这里使用栈 使链表恢复正序 
+			stack <int> s;
+			node *n=nodes[i];
+			while(n!=NULL)
+			{
+				s.push(n->data);
+				n=n->next;
+			}
+			while(!s.empty())
+			{
+				data[t++]=s.top();
+				s.pop();
+			}
+		}
+		j++;
+		k*=10;
+		print(data,15);
+	}
+	print(data,15);
+}
+
 int main()
 {
 	int data[15]={1,54,32,12,14,4,14,18,23,16,45,99,15,17,16};
+	int data2[17]={1,54,32,12,14,4,14,18,23,16,45,99,15,17,16,39,28};
 	//insertSort(data,15);
 	//pickMinSort(data,15);
 	//bubbleSort(data,15);
-	//shellSort(data,15);
+	shellSort(data,15);
 	//binInsertSort(data,15);
 	//quickSort(data,0,14);
-	heapSort(data,14);
+	//heapSort(data,14);
+	//int tempt[15];
+	//mergeSort(0,14,data,tempt);
+	//radixSort(data,15,2);
 } 
