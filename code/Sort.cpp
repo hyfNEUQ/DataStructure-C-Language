@@ -3,6 +3,13 @@
 #include <stdlib.h> 
 #include <stack>
 using namespace std;
+//交换数组中两个元素的函数
+void swap(int data[],int i,int j)
+{
+   int t=data[i];
+   data[i]=data[j];
+   data[j]=t;	
+} 
 //用于桶排序的桶（链表形式） 
 struct node
 {
@@ -20,20 +27,19 @@ node *getNode(int data)
 //打印排序后的结果 
 void print(int data[],int n)
 {
-for(int i=0;i<n;i++) cout<<data[i]<<" < ";	
+for(int i=0;i<n;i++) cout<<data[i]<<" <= ";	
 cout<<endl;
 }
 //插入排序
 void insertSort(int data[],int n)
 {
+	cout<<"--------------------插入排序------------------------------"<<endl; 
 	for(int i=0;i<n;i++)
 	{
 		int j=i;
 		while((j-1>=0)&&(data[j]<data[j-1]))
 		{
-			int t=data[j];
-			data[j]=data[j-1];
-			data[j-1]=t;
+			swap(data,j,j-1);
 			j--;
 		}
 		
@@ -43,6 +49,7 @@ void insertSort(int data[],int n)
 //选择排序
 void pickMinSort(int data[],int n)
 {
+	cout<<"--------------------选择排序------------------------------"<<endl;
     for(int i=0;i<n;i++)
 	{
 	   int index=i;
@@ -52,32 +59,33 @@ void pickMinSort(int data[],int n)
 	   if(data[index]>data[j]) index=j;
 	   j++;
 	   }
-	   int t=data[i];
-	   data[i]=data[index];
-	   data[index]=t;	
+	   swap(data,index,i);	
 	}	
 	print(data,n);
 } 
 //冒泡排序
 void bubbleSort(int data[],int n)
 {
+	cout<<"--------------------冒泡排序------------------------------"<<endl;
 	for(int i=0;i<n;i++)
 	{
-		for(int j=i+1;j<n;j++)
+		bool flag=false;
+		for(int j=n-1;j>i;j--)
 		{
-			if(data[j]<data[i])
+			if(data[j]<data[j-1])
 			{
-				int t=data[j];
-				data[j]=data[i];
-				data[i]=t;
+				flag=true;
+				swap(data,j-1,j);
 			}
 		}
+	    if(!flag) return;
+	    print(data,n);	
 	}
-	print(data,n);
 }
 //希尔排序
 void shellSort(int data[],int n)
 {
+cout<<"--------------------希尔排序------------------------------"<<endl;
 for(int gap=n/2;gap>0;gap=gap/2)
 {
 	for(int k=0;k<gap;k++)
@@ -90,9 +98,7 @@ for(int gap=n/2;gap>0;gap=gap/2)
 		{
 			if(data[k+(j+1)*gap]<data[k+j*gap]) 
 			{
-			int t=data[k+(j+1)*gap];
-			data[k+(j+1)*gap]=data[k+j*gap];
-			data[k+j*gap]=t;	
+			swap(data,k+(j+1)*gap,k+j*gap);	
 			j--;
 			} 
 			else break;
@@ -106,6 +112,7 @@ print(data,n);
 //折半插入排序(寻找插入位置时 使用折半查找法)
 void binInsertSort(int data[],int n)
 {
+cout<<"--------------------折半插入排序------------------------------"<<endl;
 for(int i=1;i<n;i++)
 {
 int low=0;int high=i-1;
@@ -128,6 +135,7 @@ print(data,n);
 //快速排序
 void quickSort(int data[],int start,int end)
 {
+	cout<<"--------------------快速排序------------------------------"<<endl;
 	if(!(end>start)) return;
 	int i=start;
 	int j=end;
@@ -139,23 +147,19 @@ void quickSort(int data[],int start,int end)
 			if(data[j]<key) break;
 			j--;
 		}
-		int t=data[i];
-		data[i]=data[j];
-		data[j]=t;
+		swap(data,i,j);
 		while(i<j)
 		{
 			if(data[i]>key) break;
 			i++;
 		}
-		t=data[i];
-		data[i]=data[j];
-		data[j]=t;
-		print(data,14);	
+		swap(data,i,j);
+		print(data,15);	
 	}
 	quickSort(data,start,i-1);
 	quickSort(data,i+1,end);	 
 } 
-//堆排序 (构造极小堆)
+//堆排序 (构造极大堆)
 void  buildMinHeap(int data[],int n)
 {
 	if(n==0) return;
@@ -165,33 +169,28 @@ void  buildMinHeap(int data[],int n)
 		if(x>n) continue;
 		else if(x==n)
 		{
-			if(data[x]<data[i]) 
+			if(data[x]>data[i]) 
 			{
-				int t=data[x];
-				data[x]=data[i];
-				data[i]=t;
+				swap(data,x,i);
 			}
 		}
 		else 
 		{
 			    int index=x;
-			    if(data[y]<data[x]) index=y;
-			    if(data[index]>data[i]) continue; 
-		        int t=data[index];
-				data[index]=data[i];
-				data[i]=t;
+			    if(data[y]>data[x]) index=y;
+			    if(data[index]<data[i]) continue; 
+		        swap(data,index,i);
 		}
 	}	
 } 
 //堆排序 
 void heapSort(int data[],int n)
 {
+	cout<<"--------------------堆排序------------------------------"<<endl;
 	while(n>=0)
 	{
 		buildMinHeap(data,n);
-		int t=data[n];
-		data[n]=data[0];
-		data[0]=t;
+		swap(data,n,0);
 		n--;
 	}	
 	print(data,15);
@@ -279,19 +278,47 @@ void radixSort(int data[],int n,int maxSize)
 	}
 	print(data,15);
 }
-
+/*
+双向冒泡排序 （第一趟把最大的放在后面，第二趟把最小的放在前面） 
+param(待排序数组 , 数组中元素个数)
+*/
+void deBubbleSort(int data[],int n)
+{
+	cout<<"--------------双向冒泡排序-----------------------"<<endl; 
+	for(int i=0;i<n;i++)
+	{
+		if(i%2==0)
+		{
+			//最大的元素沉底 
+			for(int j=i+1;j<n;j++)
+			{
+				if(data[j-1]>data[j]) swap(data,j-1,j);
+			} 
+		}
+		else
+		{
+			//最小的元素挪到前面 
+			for(int j=n-1;j>=0;j--)
+			{
+				if(data[j]<data[j-1]) swap(data,j-1,j);
+			}
+		}
+		print(data,n);
+	}
+}
 int main()
 {
-	int data[15]={1,54,32,12,14,4,14,18,23,16,45,99,15,17,16};
-	int data2[17]={1,54,32,12,14,4,14,18,23,16,45,99,15,17,16,39,28};
-	//insertSort(data,15);
-	//pickMinSort(data,15);
+	int data[15]={13,54,32,12,1,4,14,18,23,16,45,99,15,17,16};
+	int data2[17]={13,54,32,12,14,4,14,18,23,16,45,99,15,17,16,39,28};
+	//insertSort(data2,17);
+	//pickMinSort(data2,17);
 	//bubbleSort(data,15);
-	shellSort(data,15);
-	//binInsertSort(data,15);
+	//shellSort(data2,17);
+	//binInsertSort(data2,17);
 	//quickSort(data,0,14);
 	//heapSort(data,14);
 	//int tempt[15];
 	//mergeSort(0,14,data,tempt);
 	//radixSort(data,15,2);
+	deBubbleSort(data2,17);
 } 
