@@ -184,12 +184,11 @@ void postOrderBasedOnStack(TreeNode *p)
 	TreeNode *r;
 	while(!s.empty()||p!=NULL)
 	{
-		if(p!=NULL)
+		while(p!=NULL)
 		{
 			s.push(p);
 			p=p->leftChild;
 		}
-		else
 		{
 			p=s.top();
 			if(p->rightChild!=NULL&&p->rightChild!=r) p=p->rightChild;
@@ -231,23 +230,61 @@ int  getHeightByNonRecursive(TreeNode *p)
 {
 	cout<<"-----------非递归方法获取二叉树的高度------------"<<endl;
 	if(p==NULL) return 0;
-	struct TreeNode* a[100];
-	int front,i,height,size;
-	front=i=height=size=0;
-	a[front]=p;
-	while(i<=front)
+	//100考试时应换成MAXSIZE 
+	struct TreeNode * Q[100];
+	//用rear和front来模拟队列 
+	int rear=-1,front=-1;
+	Q[++rear]=p;
+	int last=0;
+	int height=0;
+	while(front<rear)
 	{
-		if(a[i]->leftChild!=NULL)  a[++size]=a[i]->leftChild;
-		if(a[i]->rightChild!=NULL) a[++size]=a[i]->rightChild; 
-		if(i==front)
-		{
-		front=size;
-		height++;	
-		}
-		i++;
+	//出队操作 
+	p=Q[++front];
+	if(p->leftChild!=NULL) Q[++rear]=p->leftChild;
+	if(p->rightChild!=NULL)	Q[++rear]=p->rightChild;
+	if(front==last)
+	{
+		height++;
+		last=rear;
+	} 
 	}
-	cout<<"-----------二叉树的高度为: "<<height<<"--------------"<<endl;
-	return height;
+	return height; 
+} 
+//利用后序遍历来非递归的求树的高度
+int getHeightByPostTraverse(TreeNode *p)
+{
+	stack<TreeNode*> s;
+	TreeNode *r;
+	int height=1;
+	int max=0;
+	while(!s.empty()||p!=NULL)
+	{
+		while(p!=NULL)
+		{
+			s.push(p);
+			p=p->leftChild;
+			if(p!=NULL) height++;
+			if(height>max) max=height;
+		}
+		{
+			p=s.top();
+			if(p->rightChild!=NULL&&p->rightChild!=r) {
+			p=p->rightChild;
+			height++;
+			if(height>max) max=height;
+		    }
+			else
+			{
+				p=s.top();
+				s.pop();
+				r=p;
+				p=NULL;
+				height--;
+			}
+		}
+	}
+	return max; 
 } 
 //二叉树自下而上，自右向左的层次遍历
 void levelTraverseReverseOrder(TreeNode *p)
@@ -371,17 +408,51 @@ void deleteSonNodeOfX(TreeNode *p,char x)
 int getXAncestors(TreeNode *p,char x)
 {
 	if(p==NULL) return 0;
+	if(p->data==x) return 1;
 	else
 	{
-		if(p->data==x) return 1;
-		else
-		{
+	
 			int al=getXAncestors(p->leftChild,x);
 			int bl=getXAncestors(p->rightChild,x);
-			if(al+bl) cout<<p->data<<endl;
+			if(al+bl>=1) cout<<p->data<<endl;
 			return al+bl;
+	}
+} 
+//打印x的所有祖先非递归
+void getXAncestors2(TreeNode *p,char x)
+{
+stack<TreeNode *> s;
+TreeNode *r,*t;
+bool flag=false;
+while(!s.empty()||p!=NULL)
+{
+	while(p!=NULL)
+	{
+		s.push(p);
+		p=p->leftChild;
+	}
+	{
+		p=s.top();
+		if(p->rightChild!=NULL&&p->rightChild!=r) p=p->rightChild;
+		else
+		{
+			p=s.top();
+			s.pop();
+			r=p;
+			if(p->data==x)
+			{
+				flag=true;
+				t=p;
+			}
+			if(flag&&(p->leftChild==t||p->rightChild==t)) 
+			{
+				printf("%c",p->data);
+				t=p;
+			}
+			p=NULL;
 		}
 	}
+}	
 } 
 //获取二叉树的最大宽度 （rear->front型） 
 int getMaxWidth(TreeNode *p)
@@ -563,8 +634,70 @@ int isSelfBalanceBinTree(TreeNode *p)
      cout<<p->data<<"左右子树差值为"<<abs(pLeft-pRight)<<endl;;
      return max(pLeft,pRight);
 }
-
+/*求先序第k个结点的值*/
+int i=0; 
+char preOrderKValue(TreeNode *p,int k)
+{
+	if(p==NULL) return '#';
+	else
+	{
+		i++; 
+		if(k==i) return (p->data);
+		else
+		{
+			char x=preOrderKValue(p->leftChild,k);
+			if(x!='#') return x;
+			return preOrderKValue(p->rightChild,k);
+		}
+	}
+}
+/*找p和q的最近的公共结点 (递归解法)*/
+bool isFindCommonNode=false;
+int ANCESTOR(TreeNode *root,TreeNode *p,TreeNode *q,TreeNode *r)
+{
+	if(root==NULL) return 0;
+	else
+	{
+		if(root->data==p->data)
+		{
+			return 1;
+		}
+		else if(root->data==q->data)
+		{
+			return 3;
+		}
+		int a1=ANCESTOR(root->leftChild,p,q,r);
+		int a2=ANCESTOR(root->rightChild,p,q,r);
+		if((a1+a2)==4&&!isFindCommonNode)
+		{
+		r=root;
+		cout<<root->data;
+		isFindCommonNode=true;	
+		}
+	}
+}
+/*找p和q的最近的公共结点 (非递归解法)*/
+void ANCESTOR2(TreeNode *root,TreeNode *p,TreeNode *q,TreeNode *r)
+{
+	stack<TreeNode *> s;
+	TreeNode *l;
+	while(!s.empty()||root!=NULL)
+	{
+		while(root!=NULL)
+		{
+			s.push(root);
+			root=root->leftChild; 
+		}
+		{
+			root=s.top();
+			while(root->rightChild!=NULL&&root->rightChild!=l)
+			{
+				
+			}
+		}
+	}
+}
 int main()
 {
-isSelfBalanceBinTree(initBinSortTree()); 
+	
 } 
