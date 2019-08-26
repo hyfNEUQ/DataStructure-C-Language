@@ -21,6 +21,35 @@ TreeNode * initTreeNode(char data)
 	return head;
 }
 /*
+初始化一颗二叉表达树  格式如下
+          +
+	   /   \
+	  *     -
+	 /\    / \
+	A  -  G   K
+	    \
+         D 
+*/
+TreeNode * initExpressTree()
+{
+	TreeNode *head=initTreeNode('+'); 
+	TreeNode *headL=initTreeNode('*');
+	TreeNode *headR=initTreeNode('-');
+	TreeNode *headRR= initTreeNode('K');
+	TreeNode *headRL= initTreeNode('G');
+	TreeNode *headLL= initTreeNode('A');
+	TreeNode *headLR= initTreeNode('-');
+	TreeNode *headLRR= initTreeNode('D');
+	head->leftChild=headL;
+	head->rightChild=headR;
+	headR->rightChild=headRR;
+	headR->leftChild=headRL;
+	headL->leftChild=headLL;
+	headL->rightChild=headLR;
+	headLR->rightChild=headLRR; 
+	return head;
+}
+/*
 初始化一颗二叉排序树  格式如下
           E
 	   /   \
@@ -54,8 +83,8 @@ TreeNode * initBinSortTree()
         A
       /  \
 	B     C
-	\    / \
-	 D	E   F
+   /\    / \
+  T	 D	E   F
 	   /
 	  G 
 	   \
@@ -457,40 +486,35 @@ while(!s.empty()||p!=NULL)
 //获取二叉树的最大宽度 （rear->front型） 
 int getMaxWidth(TreeNode *p)
 {
-	TreeNode * nodes[100];
-	int Max=0;
-	int i=0;
-	int rear=0;
-	int front=0;
-	int size=0;
-	nodes[0]=p;
-	while(i<=size)
+	if(p==NULL) return 0;
+	//最大宽度的初始值为1 
+	int max=1; 
+	//用于保存结点的队列 考试时将100换成MaxSize 
+	TreeNode * data[100];
+	int rear=-1;
+	int front=-1;
+	int last=0;
+	//根节点进队
+	data[++rear]=p;
+	while(front<rear)
 	{
-		//用size来记录从根到当前层所有节点和下一层的所有节点的总数 
-		p=nodes[i];
-		if(p==NULL) break;
-		if(p->leftChild!=NULL) 
-		{
-			nodes[++size]=p->leftChild;
+		//队头出队
+		p=data[++front];
+		if(p->leftChild!=NULL) data[++rear]=p->leftChild;
+	    if(p->rightChild!=NULL) data[++rear]=p->rightChild;
+	    //遍历完某一层次 
+	    if(last==front)
+	    {
+	    	//更新最大值 
+	    	if((rear-front)>max) max=rear-front;
+	    	//更新遍历完的标志
+			last=rear; 
+			cout<<rear-front<<endl;
 		}
-		if(p->rightChild!=NULL) 
-		{
-			nodes[++size]=p->rightChild;
-		}
-		//如果遍历到当前层的结束节点时 
-		if(i==front)
-		{
-			Max=max(front-rear+1,Max);
-			//队尾为下一层的第一个节点 
-			rear=front+1;
-			//把队头更新到下一层的最后一个节点 
-			front=size; 
-		}
-		i++;
-	}
-	return Max;
+	} 
+	return max;
 }
-// 叶子节点从左到右顺序连接成单链表，表头指针为head 叶子的右指针存放next
+// 叶子节点从左到右顺序连接成单链表，表头指针为head 叶子的右指针存放next(非递归)
 TreeNode * leafToList(TreeNode *p,TreeNode *head)
 {
 	TreeNode *tail;
@@ -522,6 +546,37 @@ TreeNode * leafToList(TreeNode *p,TreeNode *head)
 	}
 	return head;
 }
+// 叶子节点从左到右顺序连接成单链表，表头指针为head 叶子的右指针存放next(递归)
+void leafToLinkList(TreeNode *p,TreeNode *head,queue<TreeNode*> &q)
+{
+	if(p==NULL) return ;
+	if(p->leftChild==NULL&&p->rightChild==NULL)
+	{
+	q.push(p);
+	} 
+	else
+	{
+	leafToLinkList( p->leftChild, head,q);
+	leafToLinkList( p->rightChild, head,q);
+    }
+} 
+void leaf(TreeNode *p,TreeNode *head)
+{
+	queue<TreeNode*> q;
+	leafToLinkList(p,head,q);
+	TreeNode *h=head;
+	while(!q.empty())
+	{
+		h->rightChild=q.front();
+		h=h->rightChild;
+		q.pop();
+	}
+	while(head!=NULL)
+	{
+		cout<<head->rightChild->data<<endl;
+		head=head->rightChild;
+	}
+}
 /*
 一颗满二叉树 根据前序序列求后续序列
 测试代码
@@ -533,26 +588,15 @@ for(int i=0;i<15;i++)
 cout<<b[i]<<endl;
 } 
 */
-void toPostFromPre(char preOrder[] ,int start,int end,int length,char postOrder[] )
+void preToPost(char preOrder[] ,int s1,int e1,char postOrder[],int s2,int e2 )
 {
-int s=preOrder[start];
-for(int i=start;i<end;i++)
+int half;
+if(e1>=s1)
 {
-	preOrder[i]=preOrder[i+1];
-}
-preOrder[end]=s;
-int len=end-start; 
-if(len>2)
-{
-	toPostFromPre(preOrder,start,start+len/2-1,length,postOrder);
-	toPostFromPre(preOrder,start+len/2,end-1,length,postOrder);
-}
-else
-{
-	for(int i=0;i<length;i++)
-	{
-		postOrder[i]=preOrder[i];
-	}
+	postOrder[e2]=preOrder[s1];
+	half=(e1-s1)/2;
+	preToPost(preOrder,s1+1,s1+half,postOrder,s2,s2+half-1);//转换左子树 
+	preToPost(preOrder,s1+half+1,e1,postOrder,s2+half,e2-1);//转换右子树 
 }
 } 
 /*
@@ -680,7 +724,9 @@ int ANCESTOR(TreeNode *root,TreeNode *p,TreeNode *q,TreeNode *r)
 void ANCESTOR2(TreeNode *root,TreeNode *p,TreeNode *q,TreeNode *r)
 {
 	stack<TreeNode *> s;
-	TreeNode *l;
+	TreeNode *l,*t1,*t2;
+	bool pFind=false;
+	bool qFind=false;
 	while(!s.empty()||root!=NULL)
 	{
 		while(root!=NULL)
@@ -690,14 +736,87 @@ void ANCESTOR2(TreeNode *root,TreeNode *p,TreeNode *q,TreeNode *r)
 		}
 		{
 			root=s.top();
-			while(root->rightChild!=NULL&&root->rightChild!=l)
+			if(root->rightChild!=NULL&&root->rightChild!=l)
 			{
-				
+				root=root->rightChild;
+			}
+			else
+			{
+				root=s.top();
+				s.pop();
+				l=root;
+				root=NULL;
+				if(l==p)
+				{
+				   pFind=true;
+				   t1=p;
+				}
+				if(l==q)
+				{
+				   qFind=true;
+				   t2=q;	
+				}
+				if(pFind&&qFind)
+				{
+					if(t1==t2)
+					{
+						r=t1;
+						cout<<t1->data<<endl;
+						return ; 
+					} 
+					else
+					{
+						if(l->rightChild==t1||l->leftChild==t1) t1=l;
+						if(l->rightChild==t2||l->leftChild==t2) t2=l;
+					}
+				} 
+				else if(pFind&&(!qFind))
+				{
+					if(l->rightChild==t1||l->leftChild==t1) t1=l;
+				}
+				else if((!pFind)&&qFind)
+				{
+					if(l->rightChild==t2||l->leftChild==t2) t2=l;
+				}
+				if(pFind&&qFind&&(t1==t2))
+				{
+					r=t1;
+					cout<<t1->data<<endl;
+					return ; 
+				}
 			}
 		}
 	}
 }
+/*判断两个二叉树是否相似*/
+bool isAlike(TreeNode *a,TreeNode *b)
+{
+	if(a==NULL&&b==NULL) return true;
+	else if(a!=NULL&&b!=NULL)
+	{
+		return isAlike(a->leftChild,b->leftChild)&&isAlike(a->rightChild,b->rightChild);
+	}
+	else
+	{
+		return false;
+	}
+	
+} 
+/*表达式二叉树转化成中缀表达式*/
+void toExpression(TreeNode *root)
+{
+	if(root==NULL) return ;
+	else
+	{
+		if(root->rightChild!=NULL) printf("%c",'(');
+		toExpression(root->leftChild);
+		printf("%c",root->data);
+		toExpression(root->rightChild);
+		if(root->rightChild!=NULL) printf("%c",')');
+	}
+}
+
 int main()
 {
-	
+toExpression(initExpressTree());
 } 
