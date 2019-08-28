@@ -9,8 +9,9 @@ using namespace std;
 struct TreeNode
 {
 	char data;
-	TreeNode * leftChild=NULL;
-	TreeNode * rightChild=NULL; 
+	TreeNode *leftChild=NULL;
+	TreeNode *rightChild=NULL; 
+	int count;
 };
 TreeNode * initTreeNode(char data)
 {
@@ -62,13 +63,21 @@ TreeNode * initExpressTree()
 TreeNode * initBinSortTree()
 {
 	TreeNode *head=initTreeNode('E'); 
+	head->count=7;
 	TreeNode *headL=initTreeNode('B');
+	headL->count=3;
 	TreeNode *headR=initTreeNode('H');
+	headR->count=2;
 	TreeNode *headRR= initTreeNode('K');
+	headRR->count=0;
 	TreeNode *headRL= initTreeNode('G');
+	headRL->count=0;
 	TreeNode *headLL= initTreeNode('A');
+	headLL->count=0;
 	TreeNode *headLR= initTreeNode('C');
+	headLR->count=1;
 	TreeNode *headLRR= initTreeNode('D');
+	headLRR->count=0;
 	head->leftChild=headL;
 	head->rightChild=headR;
 	headR->rightChild=headRR;
@@ -815,8 +824,125 @@ void toExpression(TreeNode *root)
 		if(root->rightChild!=NULL) printf("%c",')');
 	}
 }
+/*孩子兄弟表示法的一些操作*/
+struct CSNode
+{
+	char data;
+	CSNode *fch,*nsib; 
+}; 
+/*实例化一个孩子兄弟结点*/
+CSNode* initCSNode(char data)
+{
+    CSNode 	*csNode=(struct CSNode*) malloc(sizeof(struct CSNode));
+	csNode->fch=NULL;
+	csNode->nsib=NULL;
+	return csNode;
+} 
+/*
+返回一颗二树如图所示       A
+                          / \
+						 B   C
+						/    /\
+					   D    E  F
+					         \
+					          G 
+*/
+CSNode* initCSTree()
+{
+	CSNode* A=initCSNode('A');
+	CSNode* B=initCSNode('B');
+	CSNode* C=initCSNode('C');
+	CSNode* D=initCSNode('D');
+	CSNode* E=initCSNode('E');
+	CSNode* F=initCSNode('F');
+	CSNode* G=initCSNode('G');
+	A->fch=B;
+	B->fch=D;
+	B->nsib=C;
+	C->fch=E;
+	E->fch=G; 
+	E->nsib=F;
+	return A;
+} 
+/*求一颗树的叶子结点的个数*/
+int leaves(CSNode *root)
+{
+	if(root==NULL) return 0;
+	if(root->fch==NULL) return 1+leaves(root->nsib);
+	else return leaves(root->fch)+leaves(root->nsib);
+}
+/*孩子兄弟链表，递归求深度*/
+int height(CSNode *root)
+{
+	if(root==NULL) return 0;
+	else 
+	{
+	int childrenHeight=1+height(root->fch);	
+	int brotherHeight=0+height(root->nsib);
+	return max(childrenHeight,brotherHeight);
+	} 
+}
+//已知一棵树的层次序列及每个结点的度，编写算法构造此树的孩子兄弟链表
+CSNode* createCSTree_Degree(CSNode *root,char e[],int degree[],int n)
+{
+	CSNode* nodes[n];
+	for(int i=0;i<n;i++)
+	{
+		nodes[i]=initCSNode(e[i]);
+	}
+	for(int i=0;i<n;i++)
+	{
+		CSNode *csn=nodes[i];
+	    if(degree[i]>0)
+	    {
+	    	csn->fch=nodes[i+1];
+	    	for(int j=1;j<degree[i];j++)
+	    	{
+	    		nodes[j]->nsib=nodes[j+1];
+			}
+		}
+	}
+	return nodes[0];
+} 
+/*
+编写一个递归算法，在一颗具有n个结点的，随机建立起来的二叉排序树上查找第k小的元素
+并返回指向该结点的指针。要求算法的平均时间复杂度为log2 n 二叉排序树的结点格式
+struct SortNode
+{
+char data;
+int count;
+SortNode *lchild;
+SortNode *rchild;
+} 
+*/ 
 
+TreeNode* getKMinValue(TreeNode *root,int k)
+{
+	if(root==NULL) return NULL;
+	else
+	{
+		int lowerCount=0;
+		int higherCount=0; 
+		if(root->leftChild!=NULL) lowerCount=root->leftChild->count+1;
+		if(root->rightChild!=NULL) higherCount=root->rightChild->count+1;
+		if(lowerCount+1==k)
+		{
+			return root;
+		}
+		else if(lowerCount+1<k)
+		{
+			return getKMinValue(root->rightChild,k-lowerCount-1);
+		}
+		else
+		{
+			return getKMinValue(root->leftChild,k);
+		}
+	}
+}
 int main()
 {
-toExpression(initExpressTree());
+for(int i=1;i<9;i++)
+{
+cout<<getKMinValue(initBinSortTree(),i)->data<<endl;
+}
 } 
