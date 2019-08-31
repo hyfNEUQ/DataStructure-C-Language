@@ -187,28 +187,30 @@ return alGraph->vertices[v].firstArc->adjvex;
 /* 
 图的深度遍历 
 */
-bool isVisit[MaxVex];
-void DFS (ALGraph * alGraph,int v)
+bool visited[MaxVex];
+void DFS(ALGraph *alGraph,int i)
 {
-	isVisit[v]=true;
-	cout<<alGraph->vertices[v].data<<endl;
-	AcrNode * acrNode=alGraph->vertices[v].firstArc;
-	while(acrNode!=NULL)
+	VNode v=alGraph->vertices[i]; 
+	visited[i]=true;
+	//访问v
+	printf("%c",v.data);
+	AcrNode *arc=v.firstArc;
+	while(arc!=NULL)
 	{
-		int v=acrNode->adjvex;
-		if(!isVisit[v]) DFS(alGraph,v);
-		acrNode=acrNode->nextarc;
+	if(!visited[arc->adjvex])DFS(alGraph,arc->adjvex);
+	arc=arc->nextarc;	
 	}
 }
-void DFSTraverse(ALGraph * alGraph)
+void DFSTraverse(ALGraph *alGraph)
 {
-	cout<<"深度遍历开始"<<endl; 
-	for(int i=0;i<alGraph->vexNum;i++) isVisit[i]=false;
 	for(int i=0;i<alGraph->vexNum;i++)
 	{
-    if(!isVisit[i])	DFS(alGraph,i);
+	visited[i]=false;	
+	} 
+	for(int i=0;i<alGraph->vexNum;i++)
+	{
+		if(!visited[i]) DFS(alGraph,i);
 	}
-	cout<<"深度遍历结束"<<endl;
 }
 /*
 广度遍历 
@@ -217,7 +219,7 @@ void BFS(ALGraph * alGraph,int i)
 {
 	queue<VNode> queue;
 	queue.push(alGraph->vertices[i]);
-	isVisit[i]=true;
+	visited[i]=true;
 	while(!queue.empty())
 	{
 		VNode v=queue.front();
@@ -226,7 +228,7 @@ void BFS(ALGraph * alGraph,int i)
 		AcrNode * acrNode= v.firstArc;
 		while(acrNode!=NULL)
 		{
-		if(!isVisit[acrNode->adjvex]) {isVisit[acrNode->adjvex]=true;queue.push(alGraph->vertices[acrNode->adjvex]);} 
+		if(!visited[acrNode->adjvex]) {visited[acrNode->adjvex]=true;queue.push(alGraph->vertices[acrNode->adjvex]);} 
 		acrNode=acrNode->nextarc;	
 		} 
 	}
@@ -236,11 +238,11 @@ void BFSTraverse(ALGraph * alGraph)
 	 cout<<"-------广度遍历开始-------------"<<endl;
 	 for(int i=0;i<alGraph->vexNum;i++)
 	 {
-	 	isVisit[i]=false;
+	 	visited[i]=false;
 	 }
 	 for(int i=0;i<alGraph->vexNum;i++)
 	 {
-	 	if(!isVisit[i]) BFS(alGraph,i);
+	 	if(!visited[i]) BFS(alGraph,i);
 	 } 
 	 cout<<"-------广度遍历结束-------------"<<endl;
 }
@@ -281,27 +283,27 @@ void DFSTraverseBasedOnStack(ALGraph * alGraph)
 	cout<<"非递归深度优先遍历开始"<<endl;
 	for(int i=0;i<alGraph->vexNum;i++)
 	{
-		isVisit[i]=false;
+		visited[i]=false;
 	}
 	for(int i=0;i<alGraph->vexNum;i++)
 	{
-		if(!isVisit[i])
+		if(!visited[i])
 		{
-			stack<int> s;
+			stack<int > s;
 			s.push(i);
-		    while(!s.empty())
-		    {
-		    	isVisit[s.top()]=true;
-		    	AcrNode * acrNode=alGraph->vertices[s.top()].firstArc; 
-		    	cout<<alGraph->vertices[s.top()].data<<endl; 
-		    	s.pop();
-		    	while(acrNode!=NULL)
+			while(!s.empty())
+			{
+				int top=s.top();
+				s.pop();
+				visited[top]=true;
+				printf("%c",alGraph->vertices[top].data);
+				AcrNode *acrNode=alGraph->vertices[top].firstArc; 
+				while(acrNode!=NULL)
 				{
-				if(!isVisit[acrNode->adjvex]) {
-				s.push(acrNode->adjvex);
-				isVisit[acrNode->adjvex]=true;}
-				acrNode=acrNode->nextarc;	
-				} 
+					if(!visited[acrNode->adjvex])s.push(acrNode->adjvex);
+					visited[acrNode->adjvex]=true;
+					acrNode=acrNode->nextarc;
+				}
 			}
 		}
 	} 
@@ -310,37 +312,41 @@ void DFSTraverseBasedOnStack(ALGraph * alGraph)
 /*
 判断图是否为树（图为树的条件 1. 具备连通性 2. 满足全部顶点遍历完后 边数=2*（n-1） 
 */
-void DFS2(ALGraph *graph,int & vexNum,int & edgNum,int v)
+void DFSForTree(ALGraph *graph,int i,int & vexNum,int & edgeNum)
 {
-	isVisit[v]=true;vexNum++;
-	cout<<graph->vertices[v].data<<endl;
-	AcrNode * acrNode=graph->vertices[v].firstArc;
-	while(acrNode!=NULL)
+	//访问i结点
+	visited[i]=true;
+	vexNum++;
+	printf("%c",graph->vertices[i].data);
+	AcrNode *arc=graph->vertices[i].firstArc;
+	while(arc!=NULL)
 	{
-		edgNum++;
-		if(!isVisit[acrNode->adjvex]) DFS2(graph,vexNum,edgNum,acrNode->adjvex);
-		acrNode=acrNode->nextarc;
+		if(!visited[arc->adjvex]) DFSForTree(graph,arc->adjvex,vexNum,edgeNum);
+		edgeNum++;
+		arc=arc->nextarc;
 	}
 }
 bool isTree(ALGraph *graph)
 {
-	int vexNum=0;
-	int edgNum=0;
-	for(int i=0;i<graph->vexNum;i++) isVisit[i]=false;
-	DFS2(graph,vexNum,edgNum,0);
-	if(vexNum==graph->vexNum&&edgNum==2*(graph->vexNum-1)) return true;
-	return false;
-}
+//用来记录已经访问的结点个数与边的个数 
+int vexNum=0;
+int edgeNum=0;	
+for(int i=0;i<graph->vexNum;i++)  visited[i]=false;
+DFSForTree(graph,0,vexNum,edgeNum);
+cout<<"vexNum : "<<vexNum<<" edgeNum :"<<edgeNum/2<<endl;
+if(graph->vexNum>vexNum||edgeNum!=2*(vexNum-1)) return false;
+return true;
+} 
 /*
 用深度优先判断结点vi与vj之间是否存在路径 
 */ 
 bool isHavePathBeteweenViAndVjByDFS(ALGraph *graph,int vi,int vj)
 {
 	cout<<"-----------用深度优先遍历判断是否存在路径------------"<<endl; 
-	for(int i=0;i<graph->vexNum;i++) isVisit[i]=false;
+	for(int i=0;i<graph->vexNum;i++) visited[i]=false;
 	stack <int> s;
 	s.push(vi);
-	isVisit[vi]=true;
+	visited[vi]=true;
 	while(!s.empty())
 	{
 	int v=s.top();
@@ -349,8 +355,8 @@ bool isHavePathBeteweenViAndVjByDFS(ALGraph *graph,int vi,int vj)
 	AcrNode * acrNode=graph->vertices[v].firstArc;	
 	while(acrNode!=NULL)
 	{
-	if(!isVisit[acrNode->adjvex]) s.push(acrNode->adjvex);
-	isVisit[acrNode->adjvex]=true;
+	if(!visited[acrNode->adjvex]) s.push(acrNode->adjvex);
+	visited[acrNode->adjvex]=true;
 	acrNode=acrNode->nextarc;
 	}
 	}	
@@ -363,9 +369,9 @@ bool isHavePathBetweenViAndVjByBFS(ALGraph *graph,int vi,int vj)
 {
 	cout<<"-------------用广度优先遍历的方法判断"<<graph->vertices[vi].data<<"与"<<graph->vertices[vj].data<<"是否存在路径--------"<<endl;
 	queue <int> queue;
-	        for(int i=0;i<graph->vexNum;i++) isVisit[i]=false;
+	        for(int i=0;i<graph->vexNum;i++) visited[i]=false;
 			queue.push(vi);
-			isVisit[vi]=true;
+			visited[vi]=true;
 			while(!queue.empty())
 			{
 				int v=queue.front();
@@ -374,8 +380,8 @@ bool isHavePathBetweenViAndVjByBFS(ALGraph *graph,int vi,int vj)
 				AcrNode * acrNode=graph->vertices[v].firstArc;	
 				while(acrNode!=NULL)
 				{
-					if(!isVisit[acrNode->adjvex]) queue.push(acrNode->adjvex);
-					isVisit[acrNode->adjvex]=true; 
+					if(!visited[acrNode->adjvex]) queue.push(acrNode->adjvex);
+					visited[acrNode->adjvex]=true; 
 					acrNode=acrNode->nextarc;
 				}
 			}
@@ -383,16 +389,29 @@ bool isHavePathBetweenViAndVjByBFS(ALGraph *graph,int vi,int vj)
 }
 /*
 对于使用邻接表存储的图，设计一个算法输出从定点Vi到定点Vj的全部路径 
-*/
-void PrintAllPathBetweenViAndVj(ALGraph *graph,int vi,int vj,int path[])
+void PrintAllPathBetweenViAndVj(ALGraph *graph,int vi,int vj,int path[],int d)
 {
-	
+int w,i;
+AcrNode *p;
+d++;
+path[d]=u;
+visited[u]=1;
+if(u==v) print(path[]);
+p=graph->vertices[u].firstArc;
+while(p!=NULL)
+{
+w=p->adjvex;
+if(visited[w]==0) 	PrintAllPathBetweenViAndVj(graph,w,V,path,d);
+p=p->nextarc;
+}
+visited[u]=0;	
 } 
+*/
 /*
 无权图单源最短路径算法 
-*/ 
-void  
+*/   
 int main()
 {
-
+ALGraph *graph=createFixedALGraph();	
+DFSTraverseBasedOnStack(graph);
 }
