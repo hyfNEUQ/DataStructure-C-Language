@@ -31,20 +31,17 @@ for(int i=0;i<n;i++) cout<<data[i]<<" <= ";
 cout<<endl;
 }
 //²åÈëÅÅĞò
-void insertSort(int data[],int n)
+void insetSort(int data[],int n)
 {
-	cout<<"--------------------²åÈëÅÅĞò------------------------------"<<endl; 
-	for(int i=0;i<n;i++)
-	{
-		int j=i;
-		while((j-1>=0)&&(data[j]<data[j-1]))
-		{
-			swap(data,j,j-1);
-			j--;
-		}
-		
-	}
-	print(data,n);
+for(int i=0;i<n;i++)
+{
+for(int j=i;j>0;j--)
+{
+	if(data[j]<data[j-1]) swap(data,j,j-1);
+	else break;
+}
+}
+print(data,n);	
 } 
 //Ñ¡ÔñÅÅĞò
 void pickMinSort(int data[],int n)
@@ -52,61 +49,76 @@ void pickMinSort(int data[],int n)
 	cout<<"--------------------Ñ¡ÔñÅÅĞò------------------------------"<<endl;
     for(int i=0;i<n;i++)
 	{
-	   int index=i;
-	   int j=i+1;
-	   while(j<n)
-	   {
-	   if(data[index]>data[j]) index=j;
-	   j++;
-	   }
-	   swap(data,index,i);	
+	int min=data[i];
+	int minIndex=i;
+	for(int j=i;j<n;j++)
+	{
+	if(data[j]<min)
+	{
+	min=data[j];
+	minIndex=j;	
 	}	
+	}
+	swap(data,i,minIndex);	
+	} 
 	print(data,n);
 } 
 //Ã°ÅİÅÅĞò
-void bubbleSort(int data[],int n)
+void bubbleSort1(int data[],int n)
 {
-	cout<<"--------------------Ã°ÅİÅÅĞò------------------------------"<<endl;
+	cout<<"--------------------Ã°ÅİÅÅĞò(°Ñ×îĞ¡µÄÅ²µ½Ç°Ãæ)------------------------------"<<endl;
 	for(int i=0;i<n;i++)
 	{
-		bool flag=false;
-		for(int j=n-1;j>i;j--)
+		bool isOver=true;
+		for(int j=n-1;j>=i;j--)
 		{
-			if(data[j]<data[j-1])
-			{
-				flag=true;
-				swap(data,j-1,j);
-			}
+			if(data[j]<data[j-1]) {
+			swap(data,j,j-1);
+			isOver=false;
+		    }
 		}
-	    if(!flag) return;
-	    print(data,n);	
+		print(data,n);
+		if(isOver) break;
 	}
+	print(data,n);
 }
-//Ï£¶ûÅÅĞò
+//Ã°ÅİÅÅĞò
+void bubbleSort2(int data[],int n)
+{
+for(int i=n-1;i>=0;i--)
+{
+for(int j=0;j<i;j++)
+{
+if(data[j]>data[j+1]) swap(data,j,j+1);	
+}
+}
+	print(data,n);
+} 
+//Ï£¶ûÅÅĞò£¨²åÈëÅÅĞò£© 
 void shellSort(int data[],int n)
 {
 cout<<"--------------------Ï£¶ûÅÅĞò------------------------------"<<endl;
-for(int gap=n/2;gap>0;gap=gap/2)
+for(int gap=n/2;gap>=1;gap=gap/2)
 {
-	for(int k=0;k<gap;k++)
+//¶Ôgap½øĞĞ²åÈëÅÅĞò 
+for(int i=0;i<gap;i++)
+{
+int j=0;
+while(j*gap+i<n)
+{	
+for(int k=j;k>0;k--)
+{
+	if(data[k*gap+i]<data[(k-1)*gap+i])
 	{
-	int i=0;
-	while(k+i*gap<n)
-	{
-		int j=i-1;
-		while(j>=0)
-		{
-			if(data[k+(j+1)*gap]<data[k+j*gap]) 
-			{
-			swap(data,k+(j+1)*gap,k+j*gap);	
-			j--;
-			} 
-			else break;
-		}
-		i++;
+		swap(data,k*gap+i,(k-1)*gap+i);
 	}
-   }
+	else break;
+}	
+j++;	
+}	
+}	
 }
+print(data,n); 
 print(data,n);	
 } 
 //ÕÛ°ë²åÈëÅÅĞò(Ñ°ÕÒ²åÈëÎ»ÖÃÊ± Ê¹ÓÃÕÛ°ë²éÕÒ·¨)
@@ -193,7 +205,7 @@ void heapSort(int data[],int n)
 		swap(data,n,0);
 		n--;
 	}	
-	print(data,15);
+	print(data,17);
 }
 //ºÏ²¢Á½Êı×é 
 void merge(int start,int mid,int end,int data[],int tempt[])
@@ -306,10 +318,51 @@ void deBubbleSort(int data[],int n)
 		print(data,n);
 	}
 }
+//·Çµİ¹é¿ìÅÅ
+void quickSort2(int data[],int n)
+{
+stack <int> stack;
+int start=0;
+int end=n-1;
+stack.push(start);
+stack.push(end);
+while(!stack.empty())
+{
+	end=stack.top();
+	stack.pop();
+	start=stack.top();
+	stack.pop();
+    if(end>start){
+	int i=start;
+	int j=end;
+	int key=data[i];
+	while(i<j)
+	{
+	while(i<j)
+	{
+	if(data[j]<key) break;
+	j--;	
+	}
+	swap(data,i,j);
+	while(i<j){
+	if(data[i]>key) break;
+	i++;	
+    }
+    swap(data,i,j);
+	}
+	stack.push(start);
+	stack.push(i-1);
+	stack.push(i+1);
+	stack.push(end);
+    }
+	print(data,17);	
+}
+} 
 int main()
 {
 	int data[15]={13,54,32,12,1,4,14,18,23,16,45,99,15,17,16};
 	int data2[17]={13,54,32,12,14,4,14,18,23,16,45,99,15,17,16,39,28};
+	int data3[5]={3,1,5,2,4};
 	//insertSort(data2,17);
 	//pickMinSort(data2,17);
 	//bubbleSort(data,15);
@@ -320,5 +373,5 @@ int main()
 	//int tempt[15];
 	//mergeSort(0,14,data,tempt);
 	//radixSort(data,15,2);
-	deBubbleSort(data2,17);
+	quickSort2(data2,17);
 } 
